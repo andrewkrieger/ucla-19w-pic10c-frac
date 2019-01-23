@@ -2,8 +2,7 @@
 #include "fraction.h"
 
 #include <random>
-
-#include <iostream>
+#include <sstream>
 
 // anonymous (unnamed) namespace: functions in here can only
 // be used in this .cpp file.
@@ -55,6 +54,12 @@ std::ostream& operator<<(std::ostream& os,
   return os << f.num << '/' << f.den;
 }
 
+std::string fraction_to_string(const Fraction& f) {
+  std::ostringstream oss;
+  oss << f;
+  return oss.str();
+}
+
 Fraction random_fraction() {
   // C++11 random numbers are complicated...
   static int min = -1000, max = 1000;
@@ -73,7 +78,7 @@ Fraction random_fraction() {
   return f;
 }
 
-Fraction reduce_fraction(Fraction f) {
+Fraction reduce_fraction(const Fraction& f) {
   int div = gcd(f.num, f.den);
   if (f.den < 0) div *= -1;
   Fraction reduced = f;

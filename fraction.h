@@ -15,8 +15,10 @@ struct Fraction {
 std::ostream& operator<<(std::ostream& os,
                          const Fraction& f);
 
+std::string fraction_to_string(const Fraction& f);
+
 // Not actually used, but kept for reference.
 Fraction random_fraction();
 
 // This is used heavily in the example!
-Fraction reduce_fraction(Fraction f);
+Fraction reduce_fraction(const Fraction& f);

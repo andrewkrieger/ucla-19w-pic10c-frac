@@ -2,11 +2,11 @@
 // A simplified version of boost::hash_combine, taken from
 // <https://github.com/boostorg/container_hash/blob/f054fe932f4d5173bfd6dad5bcff5738a7aff0be/include/boost/container_hash/hash.hpp>
 // Changes:
-//   - boost::hash_detail::hash_combine_impl<size_t> renamed to
-//     boost::hash_combine, to avoid extra template parameters (at the risk of
-//     breaking terribly on 32-bit machines).
-//   - Minor changes to variable names and definition of variable `m`.
-//   - License renamed to BOOST_LICENCE_1_0.txt.
+//   - Functions boost::hash_detail::hash_combine_impl<uint32_t|uint64_t>
+//     copied into this file; other functions deleted.
+//   - boost_hash_combine defined, to call hash_combine_impl.
+//   - Code reformatted; namespaces renamed.
+//   - License downloaded and renamed to BOOST_LICENCE_1_0.txt.
 //
 // Original copyright:
 //   Copyright 2005-2014 Daniel James.
@@ -18,24 +18,44 @@
 //   http://www.open-std.org/JTC1/SC22/WG21/docs/papers/2005/n1756.pdf
 //   issue 6.18./
 
-#include <cstdlib>
+#include <cstddef>
+#include <cstdint>
 
-// boost is a common C++ library. Among (many!) other things, it provides a
-// hash_combine() function, made for combining hash codes of several input
-// objects. I copied the implementation into the function below. Note that this
-// will probably fail horribly if you use a 32-bit compiler.
-void boost_hash_combine(size_t& seed, size_t value) {
-  constexpr size_t m = 0xc6a4a7935bd1e99ULL;
+#define BOOST_FUNCTIONAL_HASH_ROTL32(x, r) (x << r) | (x >> (32 - r))
+
+namespace {
+
+inline void hash_combine_impl(std::uint32_t& h1, std::uint32_t k1) {
+  const std::uint32_t c1 = 0xcc9e2d51;
+  const std::uint32_t c2 = 0x1b873593;
+
+  k1 *= c1;
+  k1 = BOOST_FUNCTIONAL_HASH_ROTL32(k1, 15);
+  k1 *= c2;
+
+  h1 ^= k1;
+  h1 = BOOST_FUNCTIONAL_HASH_ROTL32(h1, 13);
+  h1 = h1 * 5 + 0xe6546b64;
+}
+
+inline void hash_combine_impl(std::uint64_t& h, std::uint64_t k) {
+  constexpr std::uint64_t m = 0xc6a4a7935bd1e99ULL;
   constexpr int r = 47;
 
-  value *= m;
-  value ^= value >> r;
-  value *= m;
+  k *= m;
+  k ^= k >> r;
+  k *= m;
 
-  seed ^= value;
-  seed *= m;
+  h ^= k;
+  h *= m;
 
   // Completely arbitrary number, to prevent 0's
   // from hashing to 0.
-  seed += 0xe6546b64;
+  h += 0xe6546b64;
+}
+
+}  // namespace
+
+void boost_hash_combine(std::size_t& seed, std::size_t value) {
+  hash_combine_impl(seed, value);
 }
